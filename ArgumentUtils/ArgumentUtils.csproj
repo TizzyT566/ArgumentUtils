@@ -4,6 +4,8 @@
 		<TargetFramework>net7.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
+		<PackageProjectUrl></PackageProjectUrl>
+		<RepositoryUrl>https://github.com/TizzyT566/ArgumentUtils</RepositoryUrl>
 	</PropertyGroup>
 
 </Project>

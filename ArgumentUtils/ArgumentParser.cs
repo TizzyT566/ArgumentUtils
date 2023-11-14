@@ -36,7 +36,7 @@ public static class ArgumentParser
             Add(arg);
     }
 
-    public static Option Arg(string option, bool required = false)
+    public static OptionState Option(string option, bool required = false)
     {
         ArgNode? _ptr = _head;
         while (_ptr is not null)
@@ -64,14 +64,14 @@ public static class ArgumentParser
         internal ArgNode? _prev, _next;
     }
 
-    public sealed class Option
+    public sealed class OptionState : IDisposable
     {
         private readonly string _option;
         private readonly bool _required;
         private ArgNode? _start, _ptr;
         private int _index;
 
-        internal Option(ArgNode? start, string option, bool required)
+        internal OptionState(ArgNode? start, string option, bool required)
         {
             _start = start;
             _ptr = start;
@@ -79,7 +79,9 @@ public static class ArgumentParser
             _required = required;
         }
 
-        public Option Map<TParse, TResult>(IDictionary<TParse, TResult> dict, out TResult value, IFormatProvider? formatProvider = null) where TParse : IParsable<TParse>
+        public void Dispose() => Parse();
+
+        public OptionState Map<TParse, TResult>(IDictionary<TParse, TResult> dict, out TResult value, IFormatProvider? formatProvider = null) where TParse : IParsable<TParse>
         {
             _index++;
             if (_ptr is null || _ptr._next is null)
@@ -102,25 +104,25 @@ public static class ArgumentParser
             return this;
         }
 
-        public Option Map<TParse, TResult>(IDictionary<TParse, TResult> dict, out TResult value, TResult defaultValue, IFormatProvider? formatProvider = null) where TParse : IParsable<TParse>
+        public OptionState Map<TParse, TResult>(IDictionary<TParse, TResult> dict, out TResult value, TResult @default, IFormatProvider? formatProvider = null) where TParse : IParsable<TParse>
         {
             _index++;
             if (_ptr is null || _ptr._next is null)
             {
-                value = defaultValue;
+                value = @default;
                 _start = null;
                 return this;
             }
             _ptr = _ptr._next;
             if (!TParse.TryParse(_ptr._arg, formatProvider, out TParse? t) || !dict.TryGetValue(t, out value!))
             {
-                value = defaultValue;
+                value = @default;
                 _start = null;
             }
             return this;
         }
 
-        public Option Param<T>(out T value, string? name = null, string? description = null, IFormatProvider? formatProvider = null) where T : IParsable<T>
+        public OptionState Param<T>(out T value, string? name = null, string? description = null, IFormatProvider? formatProvider = null) where T : IParsable<T>
         {
             _index++;
             if (_ptr is null || _ptr._next is null)
@@ -142,25 +144,25 @@ public static class ArgumentParser
             return this;
         }
 
-        public Option Param<T>(out T value, T defaultValue, string? name = null, string? description = null, IFormatProvider? formatProvider = null) where T : IParsable<T>
+        public OptionState Param<T>(out T value, T @default, string? name = null, string? description = null, IFormatProvider? formatProvider = null) where T : IParsable<T>
         {
             _index++;
             if (_ptr is null || _ptr._next is null)
             {
-                value = defaultValue;
+                value = @default;
                 _start = null;
                 return this;
             }
             _ptr = _ptr._next;
             if (!T.TryParse(_ptr._arg, formatProvider, out value!))
             {
-                value = defaultValue;
+                value = @default;
                 _start = null;
             }
             return this;
         }
 
-        public Option Param(out string value)
+        public OptionState Param(out string value)
         {
             _index++;
             if (_ptr is null || _ptr._next is null)
@@ -176,12 +178,12 @@ public static class ArgumentParser
             return this;
         }
 
-        public Option Param(out string value, string defaultValue)
+        public OptionState Param(out string value, string @default)
         {
             _index++;
             if (_ptr is null || _ptr._next is null)
             {
-                value = defaultValue;
+                value = @default;
                 _start = null;
                 return this;
             }
@@ -223,6 +225,6 @@ public static class ArgumentParser
             return false;
         }
 
-        public static implicit operator bool(Option option) => option.Parse();
+        public static implicit operator bool(OptionState option) => option.Parse();
     }
 }
